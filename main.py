@@ -11,11 +11,16 @@ st.set_page_config(page_title="RAG Document Upload", page_icon="📄")
 def ask_question(pdf_file):
         query=st.text_input("Enter your query",placeholder="User Query")
         if st.button("Ask 🤔:") and query:
-                with st.spinner("Processing PDF..."):
+                with st.status("Processing PDF..."):
+                    st.write("Ingesting...")
                     # ingestion(pdf_file)
+                    st.write("retrieved chunks...")
                     chunks=retrive_content(query)
+                    if chunks:
+                         st.session_state.chunks
                     for chunk in chunks:
-                        chunk.metadata["source"] = pdf_file.name #updating file name with actual pdf name
+                        chunk.metadata["source"] = pdf_file.name
+                    st.write("Generating response....") #updating file name with actual pdf name
                     response=build_context_for_llm(chunks,query)
                     st.write(response)
                     if chunks:
@@ -27,7 +32,8 @@ def ask_question(pdf_file):
 def accept_pdf():
     st.title("📄 Upload a PDF")
     st.write("Upload a single PDF document to begin processing.")
-
+    if "chunks" not in st.session_state:
+         st.session_state.chunks=None
     uploaded_file = st.file_uploader(
     "Choose a PDF file",
     type=["pdf"],
