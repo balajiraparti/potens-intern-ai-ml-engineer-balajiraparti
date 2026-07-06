@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 from langchain_docling.loader import DoclingLoader
 from langchain_community.document_loaders import PyPDFLoader
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter 
+# from langchain_text_splitters import RecursiveCharacterTextSplitter 
+from langchain_experimental.text_splitter import SemanticChunker
 from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
 
@@ -25,7 +26,7 @@ def store_data(chunks,embedding_model):
     return Chroma.from_documents(
                     documents=chunks,
                     embedding=embedding_model,
-                    persist_directory="chroma_db"
+                    persist_directory="chroma_db_semantic"
                 )
 def ingestion(pdf_file):
     # docs = []
@@ -39,10 +40,11 @@ def ingestion(pdf_file):
     loader = PyPDFLoader(temp_path)
     docs=loader.load()
     # Split text into smaller chunks like paragraphs/sentences
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
-    )
+    # text_splitter = RecursiveCharacterTextSplitter(
+    #     chunk_size=500,
+    #     chunk_overlap=50
+    # )
+    text_splitter = SemanticChunker(embeddings=get_embedding_model())
     chunks = text_splitter.split_documents(docs)
 
     # Embeddings

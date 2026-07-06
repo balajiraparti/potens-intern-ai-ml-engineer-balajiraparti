@@ -18,9 +18,10 @@ def ask_question(pdf_file):
                         chunk.metadata["source"] = pdf_file.name #updating file name with actual pdf name
                     response=build_context_for_llm(chunks,query)
                     st.write(response)
-                    with st.expander("See citations"):
-                         st.write(f"ID: {chunk.id}\n source{chunk.metadata['source']} \n ")
-
+                    if chunks:
+                        with st.expander("See citations"):
+                            #st.write(f"source{chunks.metadata['source']} \n page_label: {chunks.metadata['page_label']}\n page_content: {chunks.page_content} \n type:{chunks.type}")
+                            st.write(chunks)
 
 
 def accept_pdf():
