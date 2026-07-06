@@ -14,8 +14,13 @@ def ask_question(pdf_file):
                 with st.spinner("Processing PDF..."):
                     # ingestion(pdf_file)
                     chunks=retrive_content(query)
+                    for chunk in chunks:
+                        chunk.metadata["source"] = pdf_file.name #updating file name with actual pdf name
                     response=build_context_for_llm(chunks,query)
                     st.write(response)
+                    with st.expander("See citations"):
+                         st.write(f"ID: {chunk.id}\n source{chunk.metadata['source']} \n ")
+
 
 
 def accept_pdf():
