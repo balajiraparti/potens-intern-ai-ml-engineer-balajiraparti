@@ -18,7 +18,8 @@ def ask_question(pdf_file):
                     chunks=retrive_content(query)
                     if chunks:
                          st.session_state.chunks
-                    for chunk in chunks:
+                    for i,chunk in enumerate(chunks):
+                        chunk.metadata["chunk_id"] = f"{pdf_file.name}_chunk_{i}"
                         chunk.metadata["source"] = pdf_file.name
                     st.write("Generating response....") #updating file name with actual pdf name
                     response=build_context_for_llm(chunks,query)
@@ -39,7 +40,8 @@ def accept_pdf():
     type=["pdf"],
     accept_multiple_files=False
         )
- 
+    if "is_ingestion" not in st.session_state:
+         st.session_state.is_ingestion=False
     if "is_file_uploaded" not in st.session_state:
         st.session_state.is_file_uploaded=False
     if not st.session_state.is_file_uploaded and uploaded_file:
