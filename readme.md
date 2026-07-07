@@ -299,7 +299,7 @@ The system can be evaluated using:
 
 - RRF(reciprocal rank fusion) based reranker for chunks
 
-- Claude based Qdrant support
+- Cloude based Qdrant support
 
 
 ---
