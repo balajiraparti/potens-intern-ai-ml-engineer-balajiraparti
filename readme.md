@@ -158,7 +158,6 @@ Each citation contains:
 
 
 
----
 
 # Contradiction Detection
 
@@ -177,7 +176,6 @@ The output includes:
 - Supporting evidence
 
 
-```
 
 ---
 
