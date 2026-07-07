@@ -26,14 +26,14 @@ def store_data(chunks,embedding_model):
     return Chroma.from_documents(
                     documents=chunks,
                     embedding=embedding_model,
-                    persist_directory="chroma_db_semantic"
+                    persist_directory="chroma_db_updated"
                 )
+def assign_chunk_id_and_source(chunks,pdf_file):
+    for i,chunk in enumerate(chunks):
+                    chunk.metadata["chunk_id"] = f"{pdf_file.name}_chunk_{i}"
+                    chunk.metadata["source"] = pdf_file.name
 def ingestion(pdf_file):
-    # docs = []
-    # for pdf_file in pdf_dir.glob("*.pdf"):
-    #     loader = DoclingLoader(file_path=pdf_file)
-    #     docs.extend(loader.load())
-      # Save uploaded file temporarily
+
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(pdf_file.read())
         temp_path = tmp.name
@@ -44,9 +44,13 @@ def ingestion(pdf_file):
     #     chunk_size=500,
     #     chunk_overlap=50
     # )
+
+
     text_splitter = SemanticChunker(embeddings=get_embedding_model())
     chunks = text_splitter.split_documents(docs)
 
+    #created custom function to update the source file name and assign unique chunk id to each chunk before storing it to vector store
+    assign_chunk_id_and_source(chunks,pdf_file)
     # Embeddings
     embedding_model=get_embedding_model()
 

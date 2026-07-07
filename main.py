@@ -2,6 +2,8 @@ import streamlit as st
 from app.ingestion_pipeline import ingestion
 from app.retrieval_pipeline import retrive_content
 from app.build_context import build_context_for_llm
+from retrieve_doc import get_chunk_by_id
+from app.contradict_pipeline import contradict_two_chunks
 """
 Boilerplate code to accept pdf from user generated from chatgpt
 """
@@ -13,14 +15,12 @@ def ask_question(pdf_file):
         if st.button("Ask 🤔:") and query:
                 with st.status("Processing PDF..."):
                     st.write("Ingesting...")
-                    # ingestion(pdf_file)
+                    ingestion(pdf_file)
+                    st.session_state.is_ingestion=True
                     st.write("retrieved chunks...")
                     chunks=retrive_content(query)
                     if chunks:
-                         st.session_state.chunks
-                    for i,chunk in enumerate(chunks):
-                        chunk.metadata["chunk_id"] = f"{pdf_file.name}_chunk_{i}"
-                        chunk.metadata["source"] = pdf_file.name
+                         st.session_state.chunks=chunks
                     st.write("Generating response....") #updating file name with actual pdf name
                     response=build_context_for_llm(chunks,query)
                     st.write(response)
@@ -28,6 +28,31 @@ def ask_question(pdf_file):
                         with st.expander("See citations"):
                             #st.write(f"source{chunks.metadata['source']} \n page_label: {chunks.metadata['page_label']}\n page_content: {chunks.page_content} \n type:{chunks.type}")
                             st.write(chunks)
+
+# comparing two chunks based unique chunk id
+def contradict():
+     doc_id_1=st.text_input("Enter chunk id 1:",placeholder="HR Manual DFY 2025.pdf_chunk_2")
+     doc_id_2=st.text_input("Enter chunk id 2:",placeholder="HR Manual DFY 2025.pdf_chunk_2")
+     if st.button("Compare"):
+        if doc_id_1 and doc_id_2:
+            chunk_1=get_chunk_by_id(doc_id_1)
+            chunk_2=get_chunk_by_id(doc_id_2)
+            if chunk_1 and chunk_2:
+                response=contradict_two_chunks(chunk_1['text'],chunk_2['text'])
+                st.write(f"is_contradict:{response.is_contradict}\n Reason:{response.reason}")
+                with st.expander("See citations"):
+                    st.write(f"Chunk 1:\n page_content:{chunk_1['text']}\n Metadata:{chunk_1['metadata']}")
+                    st.write(f"Chunk 2:\n page_content:{chunk_1['text']}\n Metadata:{chunk_1['metadata']}")
+            else:
+                st.write("Did not find valid chunks from vector db please enter correct chunk ids")
+        else:
+            st.write("Please input doc id first!")
+          
+          
+
+
+     
+
 
 
 def accept_pdf():
@@ -41,9 +66,10 @@ def accept_pdf():
     accept_multiple_files=False
         )
     if "is_ingestion" not in st.session_state:
-         st.session_state.is_ingestion=False
+         st.session_state.is_ingestion=True
     if "is_file_uploaded" not in st.session_state:
         st.session_state.is_file_uploaded=False
+   
     if not st.session_state.is_file_uploaded and uploaded_file:
         st.success(f"Uploaded: {uploaded_file.name}")
 
@@ -59,7 +85,8 @@ def accept_pdf():
         st.rerun()
     if st.session_state.is_file_uploaded:
         ask_question(uploaded_file)
-
+        if st.session_state.is_ingestion:
+            contradict()
         return 
 accept_pdf()
 

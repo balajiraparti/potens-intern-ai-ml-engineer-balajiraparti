@@ -31,7 +31,7 @@ def get_embedding_model():
 
 def get_vector_store(embedding_model):
     return Chroma(
-            persist_directory="chroma_db_semantic",
+            persist_directory="chroma_db_updated",
             embedding_function=embedding_model
         )
 def retrive_content(user_query:str):
