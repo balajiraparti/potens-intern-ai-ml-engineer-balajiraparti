@@ -4,18 +4,21 @@ from app.retrieval_pipeline import retrive_content
 from app.build_context import build_context_for_llm
 from retrieve_doc import get_chunk_by_id
 from app.contradict_pipeline import contradict_two_chunks
-"""
-Boilerplate code to accept pdf from user generated from chatgpt
-"""
+from app.translator import call_graph
+
+# Boilerplate code to accept pdf from user generated from chatgpt
+
 st.set_page_config(page_title="RAG Document Upload", page_icon="📄")
 
 
 def ask_question(pdf_file):
+        st.subheader("Ask Document")
         query=st.text_input("Enter your query",placeholder="User Query")
         if st.button("Ask 🤔:") and query:
                 with st.status("Processing PDF..."):
                     st.write("Ingesting...")
                     # ingestion(pdf_file)
+                    query=call_graph(query)
                     st.session_state.is_ingestion=True
                     st.write("retrieved chunks...")
                     chunks=retrive_content(query)
@@ -31,7 +34,7 @@ def ask_question(pdf_file):
 
 # comparing two chunks based unique chunk id
 def contradict():
-     st.subheader("Comparing two chunks")
+     st.subheader("Compare two chunks")
      doc_id_1=st.text_input("Enter chunk id 1:",placeholder="HR Manual DFY 2025.pdf_chunk_2")
      doc_id_2=st.text_input("Enter chunk id 2:",placeholder="HR Manual DFY 2025.pdf_chunk_2")
      if st.button("Compare"):
