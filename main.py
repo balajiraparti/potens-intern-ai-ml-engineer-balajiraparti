@@ -15,7 +15,7 @@ def ask_question(pdf_file):
         if st.button("Ask 🤔:") and query:
                 with st.status("Processing PDF..."):
                     st.write("Ingesting...")
-                    ingestion(pdf_file)
+                    # ingestion(pdf_file)
                     st.session_state.is_ingestion=True
                     st.write("retrieved chunks...")
                     chunks=retrive_content(query)
@@ -31,6 +31,7 @@ def ask_question(pdf_file):
 
 # comparing two chunks based unique chunk id
 def contradict():
+     st.subheader("Comparing two chunks")
      doc_id_1=st.text_input("Enter chunk id 1:",placeholder="HR Manual DFY 2025.pdf_chunk_2")
      doc_id_2=st.text_input("Enter chunk id 2:",placeholder="HR Manual DFY 2025.pdf_chunk_2")
      if st.button("Compare"):
@@ -41,8 +42,8 @@ def contradict():
                 response=contradict_two_chunks(chunk_1['text'],chunk_2['text'])
                 st.write(f"is_contradict:{response.is_contradict}\n Reason:{response.reason}")
                 with st.expander("See citations"):
-                    st.write(f"Chunk 1:\n page_content:{chunk_1['text']}\n Metadata:{chunk_1['metadata']}")
-                    st.write(f"Chunk 2:\n page_content:{chunk_1['text']}\n Metadata:{chunk_1['metadata']}")
+                    st.write(f"Chunk 1:\n page_content: {chunk_1['text']} \n\n Metadata:{chunk_1['metadata']}")
+                    st.write(f"Chunk 2:\n page_content: {chunk_2['text']} \n\n Metadata:{chunk_2['metadata']}")
             else:
                 st.write("Did not find valid chunks from vector db please enter correct chunk ids")
         else:

@@ -32,4 +32,3 @@ def get_chunk_by_id(chunk_id: str):
         "metadata": results["metadatas"][0]
     }
 
-print(get_chunk_by_id("HR Manual DFY 2025.pdf_chunk_3"))
