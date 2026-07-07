@@ -237,17 +237,6 @@ Compares two retrieved chunks.
 ```
 POST /contradict
 ```
-
-Input
-
-```json
-{
-    "chunk_1":42,
-    "chunk_2":87
-}
-```
-
-
 ---
 
 # Running the Project
