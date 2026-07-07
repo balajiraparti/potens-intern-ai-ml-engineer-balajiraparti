@@ -5,7 +5,7 @@ from app.build_context import build_context_for_llm
 from retrieve_doc import get_chunk_by_id
 from app.contradict_pipeline import contradict_two_chunks
 from app.translator import call_graph
-
+from app.custom_evaluation import get_score
 # Boilerplate code to accept pdf from user generated from chatgpt
 
 st.set_page_config(page_title="RAG Document Upload", page_icon="📄")
@@ -16,6 +16,7 @@ def ask_question(pdf_file):
         query=st.text_input("Enter your query",placeholder="User Query")
         if st.button("Ask 🤔:") and query:
                 with st.status("Processing PDF..."):
+                    st.session_state.query=query
                     st.write("Ingesting...")
                     # ingestion(pdf_file)
                     query=call_graph(query)
@@ -27,10 +28,12 @@ def ask_question(pdf_file):
                     st.write("Generating response....") #updating file name with actual pdf name
                     response=build_context_for_llm(chunks,query)
                     st.write(response)
+                    st.session_state.response=response
                     if chunks:
                         with st.expander("See citations"):
                             #st.write(f"source{chunks.metadata['source']} \n page_label: {chunks.metadata['page_label']}\n page_content: {chunks.page_content} \n type:{chunks.type}")
                             st.write(chunks)
+
 
 # comparing two chunks based unique chunk id
 def contradict():
@@ -64,6 +67,10 @@ def accept_pdf():
     st.write("Upload a single PDF document to begin processing.")
     if "chunks" not in st.session_state:
          st.session_state.chunks=None
+    if "query" not in st.session_state:
+         st.session_state.query=None
+    if "response" not in st.session_state:
+         st.session_state.response=None
     uploaded_file = st.file_uploader(
     "Choose a PDF file",
     type=["pdf"],
@@ -91,6 +98,8 @@ def accept_pdf():
         ask_question(uploaded_file)
         if st.session_state.is_ingestion:
             contradict()
+        if st.session_state.query and st.session_state.response and st.session_state.chunks:
+             get_score(st.session_state.query,st.session_state.response,st.session_state.chunks)
         return 
 accept_pdf()
 
