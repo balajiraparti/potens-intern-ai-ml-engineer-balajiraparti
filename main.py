@@ -18,9 +18,9 @@ def ask_question(pdf_file):
                 with st.status("Processing PDF..."):
                     st.session_state.query=query
                     st.write("Ingesting...")
-                    # ingestion(pdf_file)
-                    query=call_graph(query)
+                    ingestion(pdf_file)
                     st.session_state.is_ingestion=True
+                    query=call_graph(query)
                     st.write("retrieved chunks...")
                     chunks=retrive_content(query)
                     if chunks:
@@ -77,7 +77,7 @@ def accept_pdf():
     accept_multiple_files=False
         )
     if "is_ingestion" not in st.session_state:
-         st.session_state.is_ingestion=True
+         st.session_state.is_ingestion=False
     if "is_file_uploaded" not in st.session_state:
         st.session_state.is_file_uploaded=False
    

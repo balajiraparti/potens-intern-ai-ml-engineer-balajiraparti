@@ -8,11 +8,12 @@ from langchain_core.prompts import ChatPromptTemplate
 load_dotenv()
 from langgraph.graph import START,StateGraph,END
 from langchain_mistralai import ChatMistralAI
-
+#enforcing structured format
 class TranslationSchema(BaseModel):
      is_translation_needed:bool = Field(description="Bool variable to check translation is needed or not")
 class AIResponse(BaseModel):
     translated_message:str = Field(description="Translated Message")
+# state information maintained byeach node
 class State(TypedDict):
     user_message: str
     is_translation_needed: bool

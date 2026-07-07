@@ -17,6 +17,7 @@ def get_vector_db(embeddings):
     persist_directory="chroma_db",
     embedding_function=embeddings
 )
+#Used to enforce structured output from llm
 class ContradictSchema(BaseModel):
     is_contradict: str = Field(description="Extracted factual claim")
     reason: str = Field(description="")

@@ -33,7 +33,7 @@ def assign_chunk_id_and_source(chunks,pdf_file):
                     chunk.metadata["chunk_id"] = f"{pdf_file.name}_chunk_{i}"
                     chunk.metadata["source"] = pdf_file.name
 def ingestion(pdf_file):
-
+    # storing file on disk so that other libraries can access it
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(pdf_file.read())
         temp_path = tmp.name
