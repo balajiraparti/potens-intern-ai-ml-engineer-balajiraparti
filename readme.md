@@ -93,7 +93,8 @@ Each chunk stores metadata including:
 }
 ```
 ### Langchain_community deprecation issue
-downgraded version of langchain_community(0.4.0) as it was deprecated in May
+downgraded version of langchain_community(0.4.0) as it was deprecated in May 2026
+reference: https://github.com/langchain-ai/langchain-community/issues/674
 
 ### Query Rewriting
 If the user query is vague then it converted into more specific searchable query(less abstract)
