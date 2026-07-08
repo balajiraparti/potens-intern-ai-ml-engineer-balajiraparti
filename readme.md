@@ -252,7 +252,10 @@ Install dependencies
 ```
 pip install -r requirements.txt
 ```
-
+Start Virtual Environment
+```
+venv/scripts/activate
+```
 Configure environment
 
 ```
