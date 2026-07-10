@@ -19,7 +19,7 @@ def ask_question(pdf_file):
                 with st.status("Processing PDF..."):
                     st.session_state.query=query
                     st.write("Ingesting...")
-                    # ingestion(pdf_file)
+                    ingestion(pdf_file)
                     st.session_state.is_ingestion=True
                     query=call_graph(query)
                     st.write("retrieved chunks...")
