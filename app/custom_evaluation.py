@@ -12,7 +12,7 @@ def get_embedding_model():
 class CustomRAGEvaluator:
     def __init__(self, embedding_model):
         self.embeddings = embedding_model
-        self.llm = ChatOpenAI(model="gpt-4", temperature=0)  # Strong model for evaluation
+        self.llm = ChatOpenAI(model="gpt-4o", temperature=0)  # Strong model for evaluation
     def context_precision(self, query: str, retrieved_chunks: List[str]) -> float:
         """
         Binary relevance scoring using LLM as judge

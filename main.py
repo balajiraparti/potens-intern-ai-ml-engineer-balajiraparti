@@ -1,6 +1,7 @@
 import streamlit as st
 from app.ingestion_pipeline import ingestion
 from app.retrieval_pipeline import retrive_content
+from app.rrf_reranker import build_ranked_context
 from app.build_context import build_context_for_llm
 from retrieve_doc import get_chunk_by_id
 from app.contradict_pipeline import contradict_two_chunks
@@ -18,7 +19,7 @@ def ask_question(pdf_file):
                 with st.status("Processing PDF..."):
                     st.session_state.query=query
                     st.write("Ingesting...")
-                    ingestion(pdf_file)
+                    # ingestion(pdf_file)
                     st.session_state.is_ingestion=True
                     query=call_graph(query)
                     st.write("retrieved chunks...")
@@ -26,7 +27,8 @@ def ask_question(pdf_file):
                     if chunks:
                          st.session_state.chunks=chunks
                     st.write("Generating response....") #updating file name with actual pdf name
-                    response=build_context_for_llm(chunks,query)
+                    # response=build_context_for_llm(chunks,query)
+                    response,chunks=build_ranked_context(query)
                     st.write(response)
                     st.session_state.response=response
                     if chunks:
