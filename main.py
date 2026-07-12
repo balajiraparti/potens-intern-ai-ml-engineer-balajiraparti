@@ -3,7 +3,7 @@ from app.ingestion_pipeline import ingestion
 from app.retrieval_pipeline import retrive_content
 from app.rrf_reranker import build_ranked_context
 from app.build_context import build_context_for_llm
-from retrieve_doc import get_chunk_by_id
+from controller.retrieve_doc import get_chunk_by_id
 from app.contradict_pipeline import contradict_two_chunks
 from app.translator import call_source_to_eng_graph,call_eng_to_source_graph
 from app.custom_evaluation import get_score

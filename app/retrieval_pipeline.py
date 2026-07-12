@@ -3,9 +3,12 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from langchain_chroma.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
+from pathlib import Path
 load_dotenv()
 client=OpenAI()
-
+project_root = Path(__file__).resolve().parent.parent
+chroma_path = project_root / "chroma_db_updated"
+  
 # made a query rewriting function converts abstract questions into more specific searchable question
 def query_rewrite(user_query):
     system_prompt=f"""You are a query rewriter. Your task is to transform the user's question into a more effective search query.
@@ -31,7 +34,7 @@ def get_embedding_model():
 
 def get_vector_store(embedding_model):
     return Chroma(
-            persist_directory="chroma_db_updated",
+            persist_directory=chroma_path,
             embedding_function=embedding_model
         )
 def retrive_content(user_query:str):
