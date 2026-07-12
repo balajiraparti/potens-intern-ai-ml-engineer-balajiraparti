@@ -2,9 +2,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from typing import List, Dict
 import re
-from langchain_openai import ChatOpenAI
-from langchain_openai import OpenAIEmbeddings
+from langchain_mistralai import ChatMistralAI
+from langchain_openai import ChatOpenAI,OpenAIEmbeddings
+from langchain_groq import ChatGroq
 import streamlit as st
+import os
+from dotenv import load_dotenv
+load_dotenv()
 #retieving embedding model
 def get_embedding_model():
     return OpenAIEmbeddings() 
@@ -12,7 +16,47 @@ def get_embedding_model():
 class CustomRAGEvaluator:
     def __init__(self, embedding_model):
         self.embeddings = embedding_model
-        self.llm = ChatOpenAI(model="gpt-4o", temperature=0)  # Strong model for evaluation
+        self.llm = ChatGroq(
+    model="openai/gpt-oss-120b",
+    temperature=0)
+        # Multiple model integration to handle rate limiting
+        self.models = [
+
+            ChatGroq(
+                model="qwen/qwen3-32b",
+                temperature=0
+            ),
+
+            ChatMistralAI(
+                model="mistral-large-latest",
+                temperature=0,
+            ),
+            ChatMistralAI(
+                model="mistral-large-latest",
+                temperature=0,api_key=os.getenv("MISTRAL_CUSTOM_EVALUATION")
+            ),
+
+
+        ]  # Strong model for evaluation
+    #Fallback layer which calls a model from self.models to handle rate limiting
+    def invoke_llm(self, prompt):
+
+        last_exception = None
+
+        for model in self.models:
+
+            try:
+                return model.invoke(prompt)
+
+            except Exception as e:
+
+                print(f"{model.__class__.__name__} failed: {e}")
+
+                last_exception = e
+
+                continue
+
+        raise last_exception
     def context_precision(self, query: str, retrieved_chunks: List[str]) -> float:
         """
         Binary relevance scoring using LLM as judge
@@ -24,7 +68,7 @@ class CustomRAGEvaluator:
         Respond with only a number between 0 and 1."""
         scores = []
         for chunk in retrieved_chunks:
-            response = self.llm.invoke(prompt.format(chunk=chunk))
+            response = self.invoke_llm(prompt.format(chunk=chunk))
             try:
                 score = float(response.content.strip())
                 scores.append(score)
@@ -59,7 +103,7 @@ class CustomRAGEvaluator:
         Each claim should be a single, verifiable statement.
         Text: {text}
         Format as a list with one claim per line starting with "- """
-        response = self.llm.invoke(prompt)
+        response = self.invoke_llm(prompt)
         claims = [line.strip("- ").strip() for line in response.content.split("\n") if line.strip().startswith("-")]
         return claims
     
@@ -70,7 +114,7 @@ class CustomRAGEvaluator:
         CONTEXT: {context}
         CLAIM: {claim}
         Reasoning:"""
-        response = self.llm.invoke(prompt)
+        response = self.invoke_llm(prompt)
         verdict = response.content.strip().upper()
         if "SUPPORT" in verdict:
             return {"verdict": "SUPPORTS", "confidence": 1.0}

@@ -5,7 +5,7 @@ from app.rrf_reranker import build_ranked_context
 from app.build_context import build_context_for_llm
 from retrieve_doc import get_chunk_by_id
 from app.contradict_pipeline import contradict_two_chunks
-from app.translator import call_graph
+from app.translator import call_source_to_eng_graph,call_eng_to_source_graph
 from app.custom_evaluation import get_score
 # Boilerplate code to accept pdf from user generated from chatgpt
 
@@ -19,9 +19,10 @@ def ask_question(pdf_file):
                 with st.status("Processing PDF..."):
                     st.session_state.query=query
                     st.write("Ingesting...")
-                    ingestion(pdf_file)
+                    # ingestion(pdf_file)
                     st.session_state.is_ingestion=True
-                    query=call_graph(query)
+                    result=call_source_to_eng_graph(query)
+                    query=result['generated_query']
                     st.write("retrieved chunks...")
                     chunks=retrive_content(query)
                     if chunks:
@@ -29,6 +30,8 @@ def ask_question(pdf_file):
                     st.write("Generating response....") #updating file name with actual pdf name
                     # response=build_context_for_llm(chunks,query)
                     response,chunks=build_ranked_context(query)
+                    result['generated_query']=response
+                    response=call_eng_to_source_graph(result)
                     st.write(response)
                     st.session_state.response=response
                     if chunks:
