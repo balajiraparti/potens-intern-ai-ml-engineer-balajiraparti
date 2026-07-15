@@ -11,16 +11,34 @@ from langchain_chroma.vectorstores import Chroma
 from pydantic import BaseModel,Field
 from typing import List
 from pathlib import Path
+from langchain_openai import ChatOpenAI
 import os
 load_dotenv()
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_groq import ChatGroq
 class ParallelQuerySchema(BaseModel):
     Queries: List[str]= Field(description="Parallel Query")
 
-
-from langchain_core.prompts import ChatPromptTemplate
-
 def get_llm():
-     return ChatMistralAI(api_key=os.getenv("MISTRAL_API_KEY_BACKUP"),model="mistral-large-latest",temperature=.3)
+     return  [
+
+        ChatOpenAI(model="gpt-4o-mini"),
+            ChatMistralAI(
+                model="mistral-large-latest",
+                temperature=0,
+            ),
+            ChatMistralAI(
+                model="mistral-large-latest",
+                temperature=0,api_key=os.getenv("MISTRAL_CUSTOM_EVALUATION")
+            ),
+            ChatMistralAI(
+                model="mistral-large-latest",
+                temperature=0,api_key=os.getenv("MISTRAL_API_KEY_BACKUP")
+            ),
+
+
+        ]
 def get_embedding_model():
     return OpenAIEmbeddings() 
 def get_vector_db():
@@ -43,15 +61,19 @@ def parallel_query(query: str,k:int):
         format:
         ['question1','question2','question3']
         """
-        model=get_llm().with_structured_output(ParallelQuerySchema)
-        prompt=ChatPromptTemplate.from_messages([
-        ("system",user_prompt_parallel_query),
-        ("human","{text}")
+        for llm in get_llm():
+            try:
+                model=llm.with_structured_output(ParallelQuerySchema)
+                prompt=ChatPromptTemplate.from_messages([
+                ("system",user_prompt_parallel_query),
+                ("human","{text}")
 
-    ])
-        map_chain=prompt|model
-        response= map_chain.invoke({"text":"Generate Parallel query"})
-        return response.Queries
+            ])
+                map_chain=prompt|model
+                response= map_chain.invoke({"text":"Generate Parallel query"})
+                return response.Queries
+            except Exception as e:
+                print("rate limit reached trying another llm...")
  
 
 def search_chunks(questions: list):
@@ -131,15 +153,19 @@ def build_ranked_context(userquery:str,k:int=5):
     Context:
     {context}
     """
-    model=get_llm()
-    prompt=ChatPromptTemplate.from_messages([
-        ("system",system_prompt),
-        ("human","{text}")
+    for llm in get_llm():
+        try:
+            model=llm
+            prompt=ChatPromptTemplate.from_messages([
+                ("system",system_prompt),
+                ("human","{text}")
 
-    ])
-    map_chain=prompt|model | StrOutputParser()
-    response = map_chain.invoke({"text":userquery})
-    return response,docs
+            ])
+            map_chain=prompt|model | StrOutputParser()
+            response = map_chain.invoke({"text":userquery})
+            return response,docs
+        except Exception as e:
+            print("rate limit reached trying another llm...")
 
 if __name__ == "__main__":
     userquery=input("enter user query: ")
