@@ -14,7 +14,7 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI
 import os
 load_dotenv()
-
+import streamlit as st  
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 class ParallelQuerySchema(BaseModel):
@@ -23,24 +23,29 @@ class ParallelQuerySchema(BaseModel):
 def get_llm():
      return  [
 
-        ChatOpenAI(model="gpt-4o-mini"),
+        # ChatOpenAI(model="gpt-4o-mini"),
+        #     ChatMistralAI(
+        #         model="mistral-large-latest",
+        #         temperature=0,
+        #     ),
+        ChatGroq(model="openai/gpt-oss-120b",temperature=0,api_key=st.session_state.chatgroq_api_key),
             ChatMistralAI(
                 model="mistral-large-latest",
-                temperature=0,
+                temperature=0,api_key=st.session_state.mistral_api_key
             ),
             ChatMistralAI(
                 model="mistral-large-latest",
-                temperature=0,api_key=os.getenv("MISTRAL_CUSTOM_EVALUATION")
+                temperature=0,api_key=st.session_state.mistral_api_key_backup
             ),
             ChatMistralAI(
                 model="mistral-large-latest",
-                temperature=0,api_key=os.getenv("MISTRAL_API_KEY_BACKUP")
+                temperature=0,api_key=st.session_state.mistral_api_key_evaluation
             ),
 
 
         ]
 def get_embedding_model():
-    return OpenAIEmbeddings() 
+    return OpenAIEmbeddings(api_key=st.session_state.openai_api_key) 
 def get_vector_db():
     embedding=get_embedding_model()
     project_root = Path(__file__).resolve().parent.parent

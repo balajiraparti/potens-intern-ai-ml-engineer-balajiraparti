@@ -12,14 +12,14 @@ from langchain_chroma.vectorstores import Chroma
 import tempfile
 import os
 
-
+import streamlit as st
 load_dotenv()
 
 pdf_dir = Path(__file__).parent / "data"
 
 #retieving embedding model
 def get_embedding_model():
-    return OpenAIEmbeddings() 
+    return OpenAIEmbeddings(api_key=st.session_state.openai_api_key) 
 
 # storing chunks into vector database
 def store_data(chunks,embedding_model):
@@ -41,7 +41,7 @@ def ingestion(pdf_file):
     docs=loader.load()
     # Split text into smaller chunks like paragraphs/sentences
     # text_splitter = RecursiveCharacterTextSplitter(
-    #     chunk_size=500,
+    #     chunk_size=300,
     #     chunk_overlap=50
     # )
 

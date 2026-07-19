@@ -5,10 +5,12 @@ from langchain_openai import ChatOpenAI
 from langchain_community.vectorstores import Chroma
 from pydantic import BaseModel,Field
 from langchain_openai import OpenAIEmbeddings
+from langchain_groq import ChatGroq
+import streamlit as st
 load_dotenv()
 
 def get_llm():
-     return ChatOpenAI(model="gpt-4o-mini")
+     return ChatGroq(model="openai/gpt-oss-120b",api_key=st.session_state.chatgroq_api_key)
 def get_embedding_model():
     return OpenAIEmbeddings() 
 

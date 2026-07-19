@@ -18,22 +18,20 @@ class CustomRAGEvaluator:
         self.embeddings = embedding_model
         self.llm = ChatGroq(
     model="openai/gpt-oss-120b",
-    temperature=0)
+    temperature=0,api_key=st.session_state.chatgroq_api_key )
         # Multiple model integration to handle rate limiting
         self.models = [
-
-            ChatGroq(
-                model="qwen/qwen3-32b",
-                temperature=0
-            ),
+  ChatGroq(
+    model="openai/gpt-oss-120b",
+    temperature=0,api_key=st.session_state.chatgroq_api_key ),
 
             ChatMistralAI(
                 model="mistral-large-latest",
-                temperature=0,
+                temperature=0,api_key=st.session_state.mistral_api_key_backup
             ),
             ChatMistralAI(
                 model="mistral-large-latest",
-                temperature=0,api_key=os.getenv("MISTRAL_CUSTOM_EVALUATION")
+                temperature=0,api_key=st.session_state.mistral_api_key_evaluation
             ),
 
 
@@ -145,7 +143,7 @@ def get_score(query,answer,context):
     # Test custom metrics
     test_query = query
     test_answer = answer
-    test_contexts = [doc.page_content for doc in context]
+    test_contexts = [doc['document'].page_content for doc in context]
     st.write(f"Context Precision: {evaluator.context_precision(test_query, test_contexts):.3f}")
     st.write(f"Answer Relevance: {evaluator.answer_relevance(test_query, test_answer):.3f}")
     st.write(f"Faithfulness: {evaluator.faithfulness(test_answer, test_contexts):.3f}")

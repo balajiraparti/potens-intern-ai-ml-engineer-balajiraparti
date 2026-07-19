@@ -5,7 +5,6 @@ from langchain_chroma.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 from pathlib import Path
 load_dotenv()
-client=OpenAI()
 project_root = Path(__file__).resolve().parent.parent
 chroma_path = project_root / "chroma_db_updated"
   
@@ -21,6 +20,7 @@ Rewrite this question to be more search-friendly by:
 3. Making it clearer and more specific
 
 Return ONLY the rewritten question, nothing else."""
+    client=OpenAI()
     response=client.chat.completions.create(
         model="gpt-4o",
         messages=[

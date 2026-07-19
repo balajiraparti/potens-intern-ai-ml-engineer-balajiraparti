@@ -8,6 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 load_dotenv()
 from langgraph.graph import START,StateGraph,END
 from langchain_mistralai import ChatMistralAI
+import streamlit as st
 #enforcing structured format
 class TranslationSchema(BaseModel):
      is_translation_needed:bool = Field(description="Bool variable to check translation is needed or not")
@@ -29,7 +30,7 @@ class SourceTOEng:
     def detect_query(self,state:State):
         user_message=state.get("user_message")
     
-        llm=ChatMistralAI(model="mistral-small-latest",temperature=.3)
+        llm=ChatMistralAI(model="mistral-small-latest",temperature=.3,api_key=st.session_state.mistral_api_key)
         messages =ChatPromptTemplate.from_messages( [
         (
             "system",
@@ -71,7 +72,7 @@ class SourceTOEng:
 
     def translate_query(self,state:State):
             user_message=state.get('user_message')
-            llm=ChatMistralAI(model="mistral-small-latest",temperature=.3)
+            llm=ChatMistralAI(model="mistral-small-latest",temperature=.3,api_key=st.session_state.mistral_api_key_evaluation)
             messages = ChatPromptTemplate.from_messages([
         (
             "system",
@@ -88,6 +89,7 @@ class SourceTOEng:
     ])
             llm_with_structured_output=messages | llm.with_structured_output(AIResponse,method="json_mode")
             ai_msg = llm_with_structured_output.invoke({"user_message":user_message})
+            print(ai_msg.translated_message)
             state['translated_message']=ai_msg.translated_message
             return state
 
@@ -109,7 +111,7 @@ class EngToSource:
     def detect_query(self,state:State):
         user_message=state.get("generated_query")
     
-        llm=ChatMistralAI(model="mistral-small-latest",temperature=.3)
+        llm=ChatMistralAI(model="mistral-small-latest",temperature=.3,api_key=st.session_state.mistral_api_key)
         messages =ChatPromptTemplate.from_messages( [
         (
             "system",
@@ -151,7 +153,7 @@ class EngToSource:
 
     def translate_query(self,state:State):
             user_message=state.get('generated_query')
-            llm=ChatMistralAI(model="mistral-small-latest",temperature=.3)
+            llm=ChatMistralAI(model="mistral-small-latest",temperature=.3,api_key=st.session_state.mistral_api_key_backup)
             source_language=state.get('source_language')
             messages = ChatPromptTemplate.from_messages([
         (
