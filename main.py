@@ -83,8 +83,9 @@ def ask_question(pdf_file):
                     with st.status("Processing PDF..."):
                         st.session_state.query=query
                         st.write("Ingesting...")
-                        ingestion(pdf_file)
-                        st.session_state.is_ingestion=True
+                        if st.session_state.is_ingestion==False:
+                            ingestion(pdf_file)
+                            st.session_state.is_ingestion=True
                         result=call_source_to_eng_graph(query)
                         query=result['generated_query']
                         st.write("retrieved chunks...")
