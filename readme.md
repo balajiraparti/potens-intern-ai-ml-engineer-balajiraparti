@@ -37,7 +37,10 @@ A production-inspired Retrieval-Augmented Generation (RAG) system that answers q
 
 
 
-
+# Live Project Link:
+```
+https://potens-intern-ai-ml-engineer-balajiraparti-ezuzn6sguur5nzsap4p.streamlit.app
+```
 # Ingestion Pipeline
 
 The ingestion pipeline converts uploaded PDF documents into searchable vector embeddings.
