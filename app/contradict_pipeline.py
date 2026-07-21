@@ -6,17 +6,23 @@ from langchain_community.vectorstores import Chroma
 from pydantic import BaseModel,Field
 from langchain_openai import OpenAIEmbeddings
 from langchain_groq import ChatGroq
+from langchain_huggingface import HuggingFaceEmbeddings
 import streamlit as st
 load_dotenv()
 
 def get_llm():
      return ChatGroq(model="openai/gpt-oss-120b",api_key=st.session_state.chatgroq_api_key)
 def get_embedding_model():
-    return OpenAIEmbeddings() 
+    return HuggingFaceEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True},
+)
+
 
 def get_vector_db(embeddings):
     return Chroma(
-    persist_directory="chroma_db",
+    persist_directory="chroma_db_hugging_face",
     embedding_function=embeddings
 )
 #Used to enforce structured output from llm

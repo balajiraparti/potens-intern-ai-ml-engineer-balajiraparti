@@ -9,9 +9,15 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 load_dotenv()
+from langchain_huggingface import HuggingFaceEmbeddings
 #retieving embedding model
 def get_embedding_model():
-    return OpenAIEmbeddings() 
+    return HuggingFaceEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True},
+)
+
 # RAG Evaluation Code - used code snippets from from blog: https://atalupadhyay.wordpress.com/2026/01/30/rag-evaluation-from-bleu-scores-to-production-ready-metrics/
 class CustomRAGEvaluator:
     def __init__(self, embedding_model):

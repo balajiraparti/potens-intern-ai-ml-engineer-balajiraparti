@@ -3,6 +3,7 @@ import os
 from app.ingestion_pipeline import ingestion
 # from app.retrieval_pipeline import retrive_content
 from app.rrf_reranker import build_ranked_context
+from langchain_mistralai import ChatMistralAI
 # from app.build_context import build_context_for_llm
 from controller.retrieve_doc import get_chunk_by_id
 from app.contradict_pipeline import contradict_two_chunks
@@ -88,11 +89,13 @@ def ask_question(pdf_file):
                             st.session_state.is_ingestion=True
                         result=call_source_to_eng_graph(query)
                         query=result['generated_query']
+                        print(query)
                         st.write("retrieved chunks...")
                         # chunks=retrive_content(query)
                         st.write("Generating response....") #updating file name with actual pdf name
                         # response=build_context_for_llm(chunks,query)
                         response,chunks=build_ranked_context(query)
+                        print(response)
                         if chunks:
                             st.session_state.chunks=chunks
                         result['generated_query']=response
@@ -145,7 +148,7 @@ def accept_pdf():
     uploaded_file = st.file_uploader(
     "Choose a PDF file",
     type=["pdf"],
-    accept_multiple_files=False
+    accept_multiple_files=True
         )
     if "is_ingestion" not in st.session_state:
          st.session_state.is_ingestion=False
@@ -153,16 +156,15 @@ def accept_pdf():
         st.session_state.is_file_uploaded=False
    
     if not st.session_state.is_file_uploaded and uploaded_file:
-        st.success(f"Uploaded: {uploaded_file.name}")
+        for file in uploaded_file:
+            st.success(f"Uploaded: {file.name}")
 
-        st.write("**File Details**")
-        st.write(f"- File Name: {uploaded_file.name}")
-        st.write(f"- File Size: {uploaded_file.size / 1024:.2f} KB")
+            st.write("**File Details**")
+            st.write(f"- File Name: {file.name}")
+            st.write(f"- File Size: {file.size / 1024:.2f} KB")
 
-        # Read file bytes (for processing with PyMuPDF, pdfplumber, etc.)
-        pdf_bytes = uploaded_file.read()
 
-        st.info("PDF is ready for processing.")
+            st.info("PDF is ready for processing.")
         st.session_state.is_file_uploaded=True
         st.rerun()
     if st.session_state.is_file_uploaded:

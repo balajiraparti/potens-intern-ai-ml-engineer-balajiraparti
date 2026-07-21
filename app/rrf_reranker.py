@@ -6,13 +6,14 @@ from langchain_mistralai import ChatMistralAI
 from collections import defaultdict
 from collections import defaultdict
 
-
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma.vectorstores import Chroma
 from pydantic import BaseModel,Field
 from typing import List
 from pathlib import Path
 from langchain_openai import ChatOpenAI
 import os
+import traceback
 load_dotenv()
 import streamlit as st  
 from langchain_core.prompts import ChatPromptTemplate
@@ -23,33 +24,32 @@ class ParallelQuerySchema(BaseModel):
 def get_llm():
      return  [
 
-        # ChatOpenAI(model="gpt-4o-mini"),
-        #     ChatMistralAI(
-        #         model="mistral-large-latest",
-        #         temperature=0,
-        #     ),
-        ChatGroq(model="openai/gpt-oss-120b",temperature=0,api_key=st.session_state.chatgroq_api_key),
             ChatMistralAI(
-                model="mistral-large-latest",
+                model="mistral-small-latest",
                 temperature=0,api_key=st.session_state.mistral_api_key
             ),
             ChatMistralAI(
-                model="mistral-large-latest",
+                model="mistral-small-latest",
                 temperature=0,api_key=st.session_state.mistral_api_key_backup
             ),
             ChatMistralAI(
-                model="mistral-large-latest",
+                model="mistral-small-latest",
                 temperature=0,api_key=st.session_state.mistral_api_key_evaluation
             ),
 
 
         ]
 def get_embedding_model():
-    return OpenAIEmbeddings(api_key=st.session_state.openai_api_key) 
+    return HuggingFaceEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True},
+)
+
 def get_vector_db():
     embedding=get_embedding_model()
     project_root = Path(__file__).resolve().parent.parent
-    chroma_path = project_root / "chroma_db_updated"
+    chroma_path = project_root / "chroma_db_hugging_face"
     return Chroma(
             persist_directory=chroma_path,
             embedding_function=embedding
@@ -76,6 +76,7 @@ def parallel_query(query: str,k:int):
             ])
                 map_chain=prompt|model
                 response= map_chain.invoke({"text":"Generate Parallel query"})
+                print(response)
                 return response.Queries
             except Exception as e:
                 print("rate limit reached trying another llm...")
@@ -135,7 +136,7 @@ def build_chunks(docs:dict):
 
      lines = []
      for doc_chunk in docs:
-         lines.append(doc_chunk['document'].page_content)
+         lines.append(f"\n page content: {doc_chunk['document'].page_content} \n page number: {doc_chunk['document'].metadata['page_label']}")
         
 
      return "\n\n".join(lines)
@@ -144,16 +145,16 @@ def build_chunks(docs:dict):
 def ranked_context(userquery:str,k:int):
     parallel_queries=parallel_query(userquery,k)
     parallel_chunks=search_chunks(parallel_queries)
-    # print(parallel_chunks)
+    print(parallel_chunks)
     ranked_docs=reciprocal_rank_fusion(parallel_chunks)
-    # print(ranked_docs)
+    print(ranked_docs)
     combined_context=build_chunks(ranked_docs)
-    # print(combined_context)
+    print(combined_context)
     return combined_context,ranked_docs
 
 def build_ranked_context(userquery:str,k:int=5):
     context,docs=ranked_context(userquery,k)
-    system_prompt=f"""You are helpful assistant with who answers user query based on available context retrieved from a pdf file along with page number and page_contents.
+    system_prompt="""You are helpful assistant with who answers user query based on available context retrieved from a pdf file along with page number and page_contents.
     you should only ans the user based on the following context and navigate the user to open the right page number to know more.if you don't find any context then humbly say no the question
     Context:
     {context}
@@ -167,10 +168,17 @@ def build_ranked_context(userquery:str,k:int=5):
 
             ])
             map_chain=prompt|model | StrOutputParser()
-            response = map_chain.invoke({"text":userquery})
+            response = map_chain.invoke({"text":userquery,"context":context})
+            print(response)
             return response,docs
         except Exception as e:
-            print("rate limit reached trying another llm...")
+            print("=" * 80)
+            print(f"LLM: {llm}")
+            print(f"Exception Type: {type(e).__name__}")
+            print(f"Exception: {e}")
+            traceback.print_exc()
+            print("=" * 80)
+    return None, []
 
 if __name__ == "__main__":
     userquery=input("enter user query: ")

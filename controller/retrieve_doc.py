@@ -5,11 +5,15 @@ from pathlib import Path
 from langchain_openai import OpenAIEmbeddings
 load_dotenv()
 project_root = Path(__file__).resolve().parent.parent
-chroma_path = project_root / "chroma_db_updated"
-
+chroma_path = project_root / "chroma_db_hugging_face"
+from langchain_huggingface import HuggingFaceEmbeddings
 
 def get_embedding_model():
-    return OpenAIEmbeddings() 
+    return HuggingFaceEmbeddings(
+    model_name="BAAI/bge-small-en-v1.5",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True},
+)
 
 def get_vector_db(embeddings):
     return Chroma(
